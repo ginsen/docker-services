@@ -1,0 +1,26 @@
+#
+# The MySQL  Server configuration file.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+
+[mysqld]
+general-log=On
+general-log-file=/var/log/mysql/query.log
+
+
+# IMPORTANT: To active log in docker you change permissions in /var/log/container
+# Run this for entry in container:
+#
+# ~$ docker-compose exec mysql bash
+#
+#
+# And into de container run this:
+#
+# #$ cd /var/log
+# #$ chown mysql -R ./mysql
+#
+# Now in your Adminer web launch this queries:
+#
+# SET GLOBAL general_log = 'On';
+# SET GLOBAL general_log_file = '/var/log/mysql/query.log';

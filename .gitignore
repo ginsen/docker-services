@@ -1,0 +1,18 @@
+###> IDE (SublimeText, Eclipse, Zend Studio, Netbeans, JetBrains IDE, TextMate2, Visual Studio Code) ###
+Capfile
+.buildpath
+/.idea/
+nbproject
+.project
+.settings
+.sublime-project
+TextMate2
+.vscode
+###< IDE ###
+
+.env
+
+###> Logs ###
+/logs/mysql/*
+!/logs/mysql/.gitkeep
+###< Logs ###

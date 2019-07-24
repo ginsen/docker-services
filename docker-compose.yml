@@ -1,0 +1,118 @@
+version:  '3'
+
+networks:
+  default:
+    external:
+      name: ${EXTERNAL_NET}
+
+volumes:
+  mysql_data:
+    external:
+      name: ${MYSQL_EXTERNAL_VOLUME_DATA}
+  postgres_data:
+    external:
+      name: ${POSTGRES_EXTERNAL_VOLUME_DATA}
+  es_data:
+    external:
+      name: ${ELASTIC_EXTERNAL_VOLUME_DATA}
+  redis_data:
+    external:
+      name: ${REDIS_EXTERNAL_VOLUME_DATA}
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - ${MYSQL_PORT}:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
+      - ./config/mysql/query-log.cnf:/etc/mysql/conf.d/query-log.cnf
+
+  postgres:
+    container_name: postgres
+    image: postgres:11
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - postgres_data:/pg_data
+
+  elastic:
+    container_name: elastic
+    image: elasticsearch:5.4
+    ports:
+      - ${ELASTIC_PORT}:9200
+    volumes:
+      - es_data:/usr/share/elasticsearch/data/
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - ${REDIS_PORT}:6379
+    volumes:
+      - redis_data:/data
+
+  adminer:
+    container_name: adminer
+    image: adminer
+    ports:
+      - ${ADMINER_PORT}:8080
+
+  kibana:
+    container_name: kibana
+    image: kibana:5.4.3
+    ports:
+      - ${KIBANA_PORT}:5601
+    environment:
+      - ELASTICSEARCH_URL=http://elastic:9200
+    depends_on:
+      - elastic
+
+  logstash:
+    container_name: logstash
+    image: logstash:5.4.3
+    volumes:
+      - ./config/logstash:/logstash_dir
+    command: logstash -f /logstash_dir/logstash.conf
+    depends_on:
+      - elastic
+    ports:
+      - ${LOGSTASH_PORT}:5959
+
+  sonar:
+    container_name: sonar
+    image: sonarqube
+    environment:
+      - SONARQUBE_JDBC_USERNAME=sonar
+      - SONARQUBE_JDBC_PASSWORD=sonar
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://postgres:5432/sonar
+    ports:
+      - ${SONARQUBE_PORT}:9000
+    depends_on:
+      - postgres
+
+  maildev:
+    container_name: maildev
+    image: djfarrelly/maildev
+    ports:
+      - ${MAILDEV_PORT}:80
+
+  rabbit:
+    container_name: rabbit
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_COOKIE}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - ${WEB_RABBITMQ_PORT}:15672
+      - ${RABBITMQ_PORT}:5672
