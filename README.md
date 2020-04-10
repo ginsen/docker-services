@@ -79,6 +79,12 @@ Create sonar database.
 ```bash
 $ docker exec -i postgres createdb sonar --encoding=UTF-8 --owner=sonar
 ```
+
+If you some memory error when run sonar, throw this command:
+```bash
+$ sudo sysctl -w vm.max_map_count=262144
+```
+
 ## Up containers
 
 Now you are ready to start and up docker service containers, you can up all with one command, as below
@@ -100,19 +106,20 @@ List net service.
 
 | Service | Name in net | Port | Example connection into network docker
 | ------- | ------------------------ | ---- | -------------------------------------- |
-| MySQL | mysql | 0.0.0.0:3306->3306/tcp, 33060/tcp | mysql://user:password@mysql:3306/mydatabase |
-| PostGreSQL | postgres | 0.0.0.0:5432->5432/tcp | postgresql://postgres:5432/sonar |
-| ElasticSearch | elastic | 0.0.0.0:9200->9200/tcp, 9300/tcp | curl -i -XGET 'http://elastic:9200/' |
-| Redis | redis | 0.0.0.0:6379->6379/tcp | redis://redis:6379 |
+| MySQL | local_mysql | 0.0.0.0:3306->3306/tcp, 33060/tcp | mysql://user:password@local_mysql:3306/mydatabase |
+| PostGreSQL | local_postgres | 0.0.0.0:5432->5432/tcp | postgresql://local_postgres:5432/sonar |
+| ElasticSearch | local_elastic | 0.0.0.0:9200->9200/tcp, 9300/tcp | curl -i -XGET 'http://local_elastic:9200/' |
+| Redis | local_redis | 0.0.0.0:6379->6379/tcp | redis://local_redis:6379 |
 | MailDev | maildev | 25/tcp | smtp://maildev:25 | |
-| RabbitMQ | rabbit | 0.0.0.0:5672->5672/tcp, 15671/tcp, 25672/tcp, 4369/tcp, 5671/tcp | |
+| RabbitMQ | local_rabbit | 0.0.0.0:5672->5672/tcp, 15671/tcp, 25672/tcp, 4369/tcp, 5671/tcp | |
 
 List web service
 
 | Service | Interface web |
 | ------- | ------------- |
 | Adminer | http://localhost:8081 |
-| Kibana | http://localhost:8082 |
-| SonarQube | http://localhost:8083 |
-| MailDev | http://localhost:8084 |
-| RabbitMQ | http://localhost:8085 |
+| PGAdmin | http://localhost:8082 |
+| Kibana | http://localhost:8083 |
+| SonarQube | http://localhost:8084 |
+| MailDev | http://localhost:8085 |
+| RabbitMQ | http://localhost:8086 |

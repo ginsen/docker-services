@@ -18,10 +18,11 @@ volumes:
   redis_data:
     external:
       name: ${REDIS_EXTERNAL_VOLUME_DATA}
+  pgadmin:
 
 services:
-  mysql:
-    container_name: mysql
+  local_mysql:
+    container_name: local_mysql
     image: mysql:8.0
     command: ["--default-authentication-plugin=mysql_native_password"]
     environment:
@@ -33,8 +34,8 @@ services:
       - ./logs/mysql:/var/log/mysql
       - ./config/mysql/query-log.cnf:/etc/mysql/conf.d/query-log.cnf
 
-  postgres:
-    container_name: postgres
+  local_postgres:
+    container_name: local_postgres
     image: postgres:11
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -44,21 +45,33 @@ services:
     volumes:
       - postgres_data:/pg_data
 
-  elastic:
-    container_name: elastic
+  local_elastic:
+    container_name: local_elastic
     image: elasticsearch:5.4
     ports:
       - ${ELASTIC_PORT}:9200
     volumes:
       - es_data:/usr/share/elasticsearch/data/
 
-  redis:
-    container_name: redis
+  local_redis:
+    container_name: local_redis
     image: redis:alpine
     ports:
       - ${REDIS_PORT}:6379
     volumes:
       - redis_data:/data
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - pgadmin:/root/.pgadmin
+    ports:
+      - ${PGADMIN_PORT:-5050}:80
+    restart: unless-stopped
 
   adminer:
     container_name: adminer
@@ -66,15 +79,15 @@ services:
     ports:
       - ${ADMINER_PORT}:8080
 
-  kibana:
-    container_name: kibana
+  local_kibana:
+    container_name: local_kibana
     image: kibana:5.4.3
     ports:
       - ${KIBANA_PORT}:5601
     environment:
       - ELASTICSEARCH_URL=http://elastic:9200
     depends_on:
-      - elastic
+      - local_elastic
 
   logstash:
     container_name: logstash
@@ -83,21 +96,21 @@ services:
       - ./config/logstash:/logstash_dir
     command: logstash -f /logstash_dir/logstash.conf
     depends_on:
-      - elastic
+      - local_elastic
     ports:
       - ${LOGSTASH_PORT}:5959
 
-  sonar:
-    container_name: sonar
+  local_sonar:
+    container_name: local_sonar
     image: sonarqube
     environment:
       - SONARQUBE_JDBC_USERNAME=sonar
       - SONARQUBE_JDBC_PASSWORD=sonar
-      - SONARQUBE_JDBC_URL=jdbc:postgresql://postgres:5432/sonar
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://local_postgres:5432/sonar
     ports:
       - ${SONARQUBE_PORT}:9000
     depends_on:
-      - postgres
+      - local_postgres
 
   maildev:
     container_name: maildev
@@ -105,8 +118,8 @@ services:
     ports:
       - ${MAILDEV_PORT}:80
 
-  rabbit:
-    container_name: rabbit
+  local_rabbit:
+    container_name: local_rabbit
     image: rabbitmq:3-management
     environment:
       RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_COOKIE}
