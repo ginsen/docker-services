@@ -71,7 +71,8 @@ services:
       - pgadmin:/root/.pgadmin
     ports:
       - ${PGADMIN_PORT:-5050}:80
-    restart: unless-stopped
+    depends_on:
+      - local_postgres
 
   adminer:
     container_name: adminer
